@@ -22,21 +22,26 @@ interface CityMapProps {
   zoom?: number;
   className?: string;
   landmarks?: Array<{ lat: number; lon: number; name: string }>;
+  focussedLocation?: [number, number] | null;
 }
 
 /** Component to handle map view updates */
-function ChangeView({ center, zoom }: { center: [number, number]; zoom: number }) {
+function ChangeView({ center, zoom, focussedLocation }: { center: [number, number]; zoom: number; focussedLocation?: [number, number] | null }) {
   const map = useMap();
   useEffect(() => {
-    map.setView(center, zoom);
-  }, [center, zoom, map]);
+    if (focussedLocation) {
+      map.setView(focussedLocation, 16, { animate: true });
+    } else {
+      map.setView(center, zoom, { animate: true });
+    }
+  }, [center, zoom, focussedLocation, map]);
   return null;
 }
 
 /**
  * Cinematic City Map component
  */
-export function CityMap({ lat, lon, zoom = 13, className = '', landmarks = [] }: CityMapProps) {
+export function CityMap({ lat, lon, zoom = 13, className = '', landmarks = [], focussedLocation = null }: CityMapProps) {
   // Guard against invalid coordinates
   if (lat === undefined || lon === undefined || isNaN(lat) || isNaN(lon)) {
     return (
@@ -53,17 +58,17 @@ export function CityMap({ lat, lon, zoom = 13, className = '', landmarks = [] }:
       <MapContainer
         center={center}
         zoom={zoom}
-        scrollWheelZoom={false}
-        style={{ height: '100%', width: '100%' }} // Removed grayscale filter
-        zoomControl={false}
+        scrollWheelZoom={true} // Enabled scroll zoom
+        style={{ height: '100%', width: '100%' }}
+        zoomControl={true} // Enabled zoom controls
       >
         {/* Colorful Map Tiles (CartoDB Voyager) */}
         <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
         />
         
-        <ChangeView center={center} zoom={zoom} />
+        <ChangeView center={center} zoom={zoom} focussedLocation={focussedLocation} />
         
         <Marker position={center}>
           <Popup>

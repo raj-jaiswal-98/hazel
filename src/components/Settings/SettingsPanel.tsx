@@ -163,17 +163,20 @@ function ApiKeyField({
   placeholder: string;
 }) {
   const [isEditing, setIsEditing] = useState(false);
-  const [inputValue, setInputValue] = useState(value);
+  const [inputValue, setInputValue] = useState(''); // Start with empty input
   const [isTesting, setIsTesting] = useState(false);
   const isConnected = !!value;
 
   const handleSave = () => {
-    onChange(inputValue);
+    if (inputValue.trim()) {
+      onChange(inputValue);
+    }
+    setInputValue('');
     setIsEditing(false);
   };
 
   const handleCancel = () => {
-    setInputValue(value);
+    setInputValue('');
     setIsEditing(false);
   };
 
@@ -242,10 +245,13 @@ function ApiKeyField({
           )}
           {!isEditing && (
             <button 
-              onClick={() => setIsEditing(true)}
+              onClick={() => {
+                setInputValue(''); // Always clear when starting to edit
+                setIsEditing(true);
+              }}
               className="text-[10px] font-bold text-bloom-glow-blue opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer uppercase tracking-tight"
             >
-              {isConnected ? 'Edit' : 'Provide'}
+              {isConnected ? 'Update' : 'Provide'}
             </button>
           )}
         </div>
@@ -254,11 +260,11 @@ function ApiKeyField({
       {isEditing ? (
         <div className="flex gap-2">
           <input
-            type="text"
+            type="password"
             autoFocus
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
-            placeholder={placeholder}
+            placeholder={isConnected ? "Enter new key..." : placeholder}
             className="flex-1 px-3 py-2 text-sm rounded-lg outline-none bg-white/5 border border-white/10 text-white placeholder:text-white/20"
           />
           <button 

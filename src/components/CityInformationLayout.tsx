@@ -17,6 +17,7 @@ export function CityInformationLayout() {
   const { selectedCity, cityImage, wikiSummary, pulseEvents } = useCityStore();
   const [intel, setIntel] = useState<CityIntelligence | null>(null);
   const [loading, setLoading] = useState(false);
+  const [focussedLocation, setFocussedLocation] = useState<[number, number] | null>(null);
 
   useEffect(() => {
     if (!selectedCity) return;
@@ -43,6 +44,7 @@ export function CityInformationLayout() {
     };
 
     loadData();
+    setFocussedLocation(null); // Reset focus on city change
     return () => controller.abort();
   }, [selectedCity]);
 
@@ -125,6 +127,7 @@ export function CityInformationLayout() {
             lat={selectedCity.latitude} 
             lon={selectedCity.longitude} 
             landmarks={intel?.landmarks || []}
+            focussedLocation={focussedLocation}
             className="h-[400px]" // Larger map as requested
           />
         </motion.div>
@@ -137,7 +140,17 @@ export function CityInformationLayout() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.3 }}
           >
-            <GlassCard className="p-6 h-full border-l-cyan-500/30 border-l-2">
+            <GlassCard className="p-6 h-full border-l-cyan-500/30 border-l-2 relative group/section">
+              <div className="absolute top-4 right-4 opacity-0 group-hover/section:opacity-100 transition-opacity">
+                <a 
+                  href="https://www.openstreetmap.org" 
+                  target="_blank" 
+                  rel="noreferrer"
+                  className="text-[9px] uppercase tracking-tighter text-cyan-500 hover:underline"
+                >
+                  Source: OSM
+                </a>
+              </div>
               <h3 className="text-label mb-4 flex items-center gap-2">
                 <div className="w-2 h-2 rounded-full bg-cyan-500 shadow-[0_0_5px_cyan]"></div>
                 Local Points
@@ -149,7 +162,11 @@ export function CityInformationLayout() {
                   </div>
                 ) : (
                   intel?.landmarks.slice(0, 5).map((poi, i) => (
-                    <div key={i} className="flex items-center justify-between text-xs group/poi cursor-default">
+                    <div 
+                      key={i} 
+                      className={`flex items-center justify-between text-xs group/poi cursor-pointer p-1 rounded transition-colors ${focussedLocation?.[0] === poi.lat && focussedLocation?.[1] === poi.lon ? 'bg-white/10' : 'hover:bg-white/5'}`}
+                      onClick={() => setFocussedLocation([poi.lat, poi.lon])}
+                    >
                       <span className="text-bloom-text-primary group-hover/poi:text-cyan-400 transition-colors">{poi.name}</span>
                       <span className="opacity-40 uppercase tracking-tighter text-[9px]">{poi.type}</span>
                     </div>
@@ -165,7 +182,17 @@ export function CityInformationLayout() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.4 }}
           >
-            <GlassCard className="p-6 h-full border-l-purple-500/30 border-l-2">
+            <GlassCard className="p-6 h-full border-l-purple-500/30 border-l-2 relative group/section">
+              <div className="absolute top-4 right-4 opacity-0 group-hover/section:opacity-100 transition-opacity">
+                <a 
+                  href={`https://en.wikipedia.org/wiki/${encodeURIComponent(selectedCity.name)}`} 
+                  target="_blank" 
+                  rel="noreferrer"
+                  className="text-[9px] uppercase tracking-tighter text-purple-500 hover:underline"
+                >
+                  Source: Wiki
+                </a>
+              </div>
               <h3 className="text-label mb-4 flex items-center gap-2">
                 <div className="w-2 h-2 rounded-full bg-purple-500 shadow-[0_0_5px_purple]"></div>
                 Latest Heartbeat
