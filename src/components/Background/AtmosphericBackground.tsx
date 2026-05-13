@@ -74,14 +74,14 @@ export function AtmosphericBackground({
             key={imageUrl}
             className="absolute inset-0 z-0"
             initial={{ opacity: 0, scale: 1.1 }}
-            animate={{ opacity: 0.15, scale: 1 }}
+            animate={{ opacity: 0.25, scale: 1 }}
             exit={{ opacity: 0, scale: 1.1 }}
             transition={{ duration: 3, ease: 'easeOut' }}
           >
             <img
               src={imageUrl}
               alt=""
-              className="w-full h-full object-cover grayscale mix-blend-overlay brightness-110"
+              className="w-full h-full object-cover mix-blend-screen brightness-125 saturate-150"
             />
           </motion.div>
         )}

@@ -10,8 +10,8 @@ export function getCitySignatureColor(name: string): string {
     hash = name.charCodeAt(i) + ((hash << 5) - hash);
   }
   const h = Math.abs(hash % 360);
-  const s = 30 + (Math.abs(hash % 30)); // 30-60% saturation
-  const l = 50 + (Math.abs(hash % 20)); // 50-70% lightness
+  const s = 50 + (Math.abs(hash % 40)); // 50-90% saturation
+  const l = 60 + (Math.abs(hash % 20)); // 60-80% lightness
   return `hsl(${h}, ${s}%, ${l}%)`;
 }
 

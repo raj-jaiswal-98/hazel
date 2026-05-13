@@ -9,7 +9,7 @@ export const API = {
   WIKIPEDIA: 'https://en.wikipedia.org/api/rest_v1/page/summary',
   WORLDTIME: 'https://worldtimeapi.org/api/timezone',
   OPENAI: 'https://api.openai.com/v1/chat/completions',
-  GEMINI: 'https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent',
+  GEMINI: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent',
 } as const;
 
 /** Timing constants */

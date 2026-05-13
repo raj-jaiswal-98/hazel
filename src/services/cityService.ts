@@ -37,6 +37,7 @@ export async function fetchCitySummary(
       thumbnailUrl: data.thumbnail?.source,
       vibeTags: [],    // Filled by vibe generator
       landmarks: [],   // Filled by city intel component
+      facts: [],       // Filled by scraper
     };
   } catch {
     return null;

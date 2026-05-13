@@ -52,7 +52,13 @@ export interface CityIntelligence {
   description?: string;
   thumbnailUrl?: string;
   vibeTags: string[];
-  landmarks: string[];
+  landmarks: Array<{
+    name: string;
+    lat: number;
+    lon: number;
+    type: string;
+  }>;
+  facts: string[];
 }
 
 /** Country code to flag emoji */

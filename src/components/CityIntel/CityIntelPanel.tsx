@@ -4,8 +4,11 @@ import { GlassCard } from '../ui/GlassCard';
 import { useCityStore } from '../../stores/useCityStore';
 import { useWeatherStore } from '../../stores/useWeatherStore';
 import { fetchCitySummary } from '../../services/cityService';
+import { fetchCityLandmarks } from '../../services/landmarkService';
+import { scrapeCityFacts } from '../../services/visualService';
 import { formatPopulation } from '../../utils/helpers';
 import { countryCodeToFlag } from '../../types/city';
+import { CityMap } from '../CityMap/CityMap';
 import type { CityIntelligence } from '../../types/city';
 
 /** City Intelligence panel */
@@ -21,16 +24,26 @@ export function CityIntelPanel() {
     setLoading(true);
     const controller = new AbortController();
 
-    fetchCitySummary(selectedCity.name, controller.signal)
-      .then((data) => {
-        if (data) {
-          // Generate vibe tags based on conditions
-          data.vibeTags = generateVibeTags(selectedCity, current);
-          setIntel(data);
+    const loadData = async () => {
+      try {
+        const [summaryData, landmarkData, factData] = await Promise.all([
+          fetchCitySummary(selectedCity.name, controller.signal),
+          fetchCityLandmarks(selectedCity.latitude, selectedCity.longitude),
+          scrapeCityFacts(selectedCity.name)
+        ]);
+
+        if (summaryData) {
+          summaryData.vibeTags = generateVibeTags(selectedCity, current);
+          summaryData.landmarks = landmarkData;
+          summaryData.facts = factData;
+          setIntel(summaryData);
         }
+      } finally {
         setLoading(false);
-      })
-      .catch(() => setLoading(false));
+      }
+    };
+
+    loadData();
 
     return () => controller.abort();
   }, [selectedCity, current]);
@@ -38,8 +51,14 @@ export function CityIntelPanel() {
   if (!selectedCity) return null;
 
   return (
-    <GlassCard animate={true} delay={0.2} className="p-6" id="city-intel-panel">
-      <div className="text-label mb-4">City Intelligence</div>
+    <GlassCard animate={true} delay={0.2} className="p-6 relative overflow-hidden group" id="city-intel-panel">
+      {/* Colorful Gradient Accent */}
+      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-cyan-500 via-purple-500 to-pink-500 opacity-70"></div>
+      
+      <div className="text-label mb-4 flex items-center gap-2">
+        <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></div>
+        City Intelligence
+      </div>
 
       {loading && (
         <div className="text-sm" style={{ color: 'var(--color-bloom-text-muted)' }}>
@@ -56,20 +75,66 @@ export function CityIntelPanel() {
             </p>
           )}
 
+          {/* Map */}
+          <CityMap 
+            lat={selectedCity.latitude} 
+            lon={selectedCity.longitude} 
+            landmarks={intel.landmarks}
+          />
+
+          {/* Landmarks List */}
+          {intel.landmarks.length > 0 && (
+            <div className="space-y-3">
+              <span className="text-label block">Key Landmarks</span>
+              <div className="grid grid-cols-1 gap-2">
+                {intel.landmarks.slice(0, 4).map((poi, i) => {
+                  const colors = ['#06b6d4', '#8b5cf6', '#ec4899', '#f59e0b'];
+                  const color = colors[i % colors.length];
+                  return (
+                    <div key={poi.name} className="flex items-center gap-2 text-xs group/item cursor-default">
+                      <div 
+                        className="w-1.5 h-1.5 rounded-full shadow-[0_0_8px_rgba(0,0,0,0.5)] transition-transform group-hover/item:scale-150" 
+                        style={{ backgroundColor: color, boxShadow: `0 0 10px ${color}` }}
+                      ></div>
+                      <span className="transition-colors group-hover/item:text-white" style={{ color: 'var(--color-bloom-text-primary)' }}>{poi.name}</span>
+                      <span className="opacity-40 ml-auto uppercase tracking-widest" style={{ fontSize: '9px', color }}>{poi.type}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           {/* Vibe Tags */}
           {intel.vibeTags.length > 0 && (
             <div className="flex flex-wrap gap-2">
               {intel.vibeTags.map((tag, i) => (
                 <motion.span
                   key={tag}
-                  className="glass-pill text-xs"
-                  style={{ color: 'var(--color-bloom-text-primary)' }}
+                  className="glass-pill text-xs border-white/5 bg-white/5"
+                  style={{ 
+                    color: 'var(--color-bloom-text-primary)',
+                    background: `linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05))`
+                  }}
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
+                  whileHover={{ scale: 1.05, backgroundColor: 'rgba(255,255,255,0.15)' }}
                   transition={{ delay: i * 0.08 }}
                 >
                   {tag}
                 </motion.span>
+              ))}
+            </div>
+          )}
+
+          {/* Scraped Facts */}
+          {intel.facts.length > 0 && (
+            <div className="space-y-2 pt-2 border-t border-white/5">
+              <span className="text-label block">Fast Intelligence</span>
+              {intel.facts.map((fact, i) => (
+                <p key={i} className="text-xs italic leading-relaxed opacity-70" style={{ color: 'var(--color-bloom-text-secondary)' }}>
+                  "{fact}"
+                </p>
               ))}
             </div>
           )}
