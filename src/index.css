@@ -1,0 +1,236 @@
+@import "tailwindcss";
+
+/* ===========================
+   Bloom Design System
+   =========================== */
+
+@theme {
+  /* --- Colors --- */
+  --color-bloom-bg-dark: #0a0a0f;
+  --color-bloom-bg-warm: #1a1410;
+  --color-bloom-glass: rgba(255, 255, 255, 0.06);
+  --color-bloom-glass-border: rgba(255, 255, 255, 0.08);
+  --color-bloom-glass-hover: rgba(255, 255, 255, 0.1);
+  --color-bloom-text-primary: rgba(255, 255, 255, 0.92);
+  --color-bloom-text-secondary: rgba(255, 255, 255, 0.55);
+  --color-bloom-text-muted: rgba(255, 255, 255, 0.35);
+  --color-bloom-glow-blue: #4a9eff;
+  --color-bloom-glow-amber: #ffb347;
+  --color-bloom-glow-violet: #a78bfa;
+  --color-bloom-glow-rose: #f472b6;
+  --color-bloom-glow-ice: #c8dcff;
+  --color-bloom-glow-red: #ff6b6b;
+  --color-bloom-glow-green: #4ade80;
+
+  /* --- Typography --- */
+  --font-display: 'Space Grotesk', system-ui, sans-serif;
+  --font-body: 'Inter', system-ui, sans-serif;
+
+  /* --- Spacing --- */
+  --space-unit: 8px;
+  --radius-glass: 20px;
+  --radius-pill: 9999px;
+  --blur-glass: 16px;
+
+  /* --- Motion --- */
+  --duration-fast: 150ms;
+  --duration-normal: 300ms;
+  --duration-reveal: 800ms;
+  --duration-atmosphere: 2000ms;
+
+  /* --- Breakpoints --- */
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+  --breakpoint-2xl: 1536px;
+}
+
+/* ===========================
+   Base Styles
+   =========================== */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--color-bloom-bg-dark);
+  color: var(--color-bloom-text-primary);
+  min-height: 100vh;
+  overflow-x: hidden;
+  line-height: 1.6;
+}
+
+#root {
+  min-height: 100vh;
+  position: relative;
+}
+
+/* ===========================
+   Typography Utilities
+   =========================== */
+
+.font-display {
+  font-family: var(--font-display);
+}
+
+.text-hero {
+  font-size: clamp(3rem, 8vw, 7rem);
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+}
+
+.text-narration {
+  font-size: clamp(1rem, 2.5vw, 1.5rem);
+  font-weight: 300;
+  font-style: italic;
+  line-height: 1.5;
+}
+
+.text-label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-bloom-text-secondary);
+}
+
+/* ===========================
+   Glassmorphism Utilities
+   =========================== */
+
+.glass {
+  background: var(--color-bloom-glass);
+  border: 1px solid var(--color-bloom-glass-border);
+  border-radius: var(--radius-glass);
+  backdrop-filter: blur(var(--blur-glass));
+  -webkit-backdrop-filter: blur(var(--blur-glass));
+}
+
+.glass-hover {
+  transition: background var(--duration-normal) ease,
+              border-color var(--duration-normal) ease,
+              box-shadow var(--duration-normal) ease;
+}
+
+.glass-hover:hover {
+  background: var(--color-bloom-glass-hover);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.glass-pill {
+  background: var(--color-bloom-glass);
+  border: 1px solid var(--color-bloom-glass-border);
+  border-radius: var(--radius-pill);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  padding: 6px 16px;
+  font-size: 0.8rem;
+}
+
+/* ===========================
+   Glow Utilities
+   =========================== */
+
+.glow-blue {
+  box-shadow: 0 0 20px rgba(74, 158, 255, 0.1), 0 0 60px rgba(74, 158, 255, 0.05);
+}
+
+.glow-amber {
+  box-shadow: 0 0 20px rgba(255, 179, 71, 0.1), 0 0 60px rgba(255, 179, 71, 0.05);
+}
+
+.glow-violet {
+  box-shadow: 0 0 20px rgba(167, 139, 250, 0.1), 0 0 60px rgba(167, 139, 250, 0.05);
+}
+
+.glow-rose {
+  box-shadow: 0 0 20px rgba(244, 114, 182, 0.1), 0 0 60px rgba(244, 114, 182, 0.05);
+}
+
+/* ===========================
+   Animations
+   =========================== */
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+@keyframes breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.03); }
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+.animate-breathe {
+  animation: breathe 4s ease-in-out infinite;
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.8s ease-out forwards;
+}
+
+/* ===========================
+   Scrollbar
+   =========================== */
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* ===========================
+   Selection
+   =========================== */
+
+::selection {
+  background: rgba(74, 158, 255, 0.3);
+  color: white;
+}
