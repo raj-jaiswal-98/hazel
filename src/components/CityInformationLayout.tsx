@@ -1,9 +1,7 @@
 import { motion } from 'framer-motion';
 import { useCityStore } from '../stores/useCityStore';
-import { useWeatherStore } from '../stores/useWeatherStore';
 import { GlassCard } from './ui/GlassCard';
 import { CityMap } from './CityMap/CityMap';
-import { countryCodeToFlag } from '../types/city';
 import { useEffect, useState } from 'react';
 import { fetchCityLandmarks } from '../services/landmarkService';
 import { scrapeCityFacts } from '../services/visualService';
@@ -17,7 +15,6 @@ import type { CityIntelligence } from '../types/city';
  */
 export function CityInformationLayout() {
   const { selectedCity, cityImage, wikiSummary, pulseEvents } = useCityStore();
-  const current = useWeatherStore((s) => s.current);
   const [intel, setIntel] = useState<CityIntelligence | null>(null);
   const [loading, setLoading] = useState(false);
 
