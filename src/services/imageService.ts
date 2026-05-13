@@ -30,18 +30,28 @@ export async function fetchCityImage(
     const query = `${cityName} cityscape`;
     const url = `${API.UNSPLASH}/search/photos?query=${encodeURIComponent(query)}&orientation=landscape&per_page=1`;
 
+    console.log(`[Unsplash] Attempting to fetch image for: ${cityName}...`);
+
     const response = await fetch(url, {
       headers: { Authorization: `Client-ID ${apiKey}` },
       signal,
     });
 
-    if (!response.ok) return null;
+    if (!response.ok) {
+      console.error(`[Unsplash] Connection failed. Status: ${response.status} ${response.statusText}`);
+      return null;
+    }
 
     const data: UnsplashSearchResponse = await response.json();
 
-    if (!data.results || data.results.length === 0) return null;
+    if (!data.results || data.results.length === 0) {
+      console.warn(`[Unsplash] Connected, but no images found for: ${cityName}`);
+      return null;
+    }
 
     const photo = data.results[0];
+    console.log(`[Unsplash] Connection successful. Fetched image by: ${photo.user.name}`);
+    
     return {
       url: photo.urls.regular,
       thumbUrl: photo.urls.small,
@@ -49,7 +59,9 @@ export async function fetchCityImage(
       photographer: photo.user.name,
       photographerUrl: photo.user.links.html,
     };
-  } catch {
+  } catch (error) {
+    if (error instanceof Error && error.name === 'AbortError') return null;
+    console.error('[Unsplash] Connection error:', error);
     return null;
   }
 }
