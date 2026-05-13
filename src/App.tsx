@@ -5,9 +5,7 @@ import { AtmosphericBackground, CanvasLayer } from './components/Background';
 import { BuddyComponent } from './components/Background/BuddyComponent';
 import { WeatherGrid } from './components/Weather';
 import { ForecastTimeline } from './components/Forecast';
-import { CityIntelPanel } from './components/CityIntel';
-import { DiscoverySection } from './components/DiscoverySection';
-import { CityPulseSection } from './components/CityPulseSection';
+import { CityInformationLayout } from './components/CityInformationLayout';
 import { DraggableWidget } from './components/DraggableWidget';
 import { SettingsPanel } from './components/Settings';
 import { useCityStore } from './stores/useCityStore';
@@ -115,31 +113,17 @@ function App() {
           </DraggableWidget>
         )}
 
-        {/* Discovery Section (Wiki) */}
-        {showForecast && (
-          <DraggableWidget id="discovery-wiki" className="w-full max-w-6xl px-6 mt-12">
-            <DiscoverySection />
-          </DraggableWidget>
-        )}
-
-        {/* City Pulse Section (History) */}
-        {showCityIntel && (
-          <DraggableWidget id="city-pulse" className="w-full max-w-6xl px-6 mt-12">
-            <CityPulseSection />
-          </DraggableWidget>
-        )}
-
-        {/* Forecast Timeline (Secondary Info) */}
-        {showForecast && daily.length > 0 && (
-          <DraggableWidget id="forecast-timeline" className="w-full max-w-6xl px-6 mt-12">
-            <ForecastTimeline />
-          </DraggableWidget>
-        )}
-
-        {/* City Intelligence (Deep Data) */}
-        {showCityIntel && selectedCity && (
-          <DraggableWidget id="city-intelligence" className="w-full max-w-6xl px-6 mt-12 pb-16">
-            <CityIntelPanel />
+        {/* Unified City Information Dashboard (Left: Info/Photo, Right: Map/Feed) */}
+        {(showForecast || showCityIntel) && selectedCity && (
+          <DraggableWidget id="city-dashboard" className="w-full flex flex-col items-center pb-16">
+            <CityInformationLayout />
+            
+            {/* Forecast Timeline at the bottom of the dashboard */}
+            {showForecast && daily.length > 0 && (
+              <div className="w-full max-w-7xl px-6 mt-8">
+                <ForecastTimeline />
+              </div>
+            )}
           </DraggableWidget>
         )}
       </div>
