@@ -10,12 +10,13 @@ interface UIState {
 
   // Narration
   narration: string;
+  narrationSource: string;
   isNarrationLoading: boolean;
 
   // Actions
   setInitialLoad: (val: boolean) => void;
   revealSections: () => void;
-  setNarration: (text: string) => void;
+  setNarration: (text: string, source: string) => void;
   setNarrationLoading: (val: boolean) => void;
   resetUI: () => void;
 }
@@ -27,6 +28,7 @@ export const useUIStore = create<UIState>((set) => ({
   showForecast: false,
   showCityIntel: false,
   narration: '',
+  narrationSource: 'template',
   isNarrationLoading: false,
 
   setInitialLoad: (val) => set({ isInitialLoad: val }),
@@ -39,7 +41,7 @@ export const useUIStore = create<UIState>((set) => ({
     setTimeout(() => set({ showCityIntel: true }), 1200);
   },
 
-  setNarration: (text) => set({ narration: text, isNarrationLoading: false }),
+  setNarration: (text, source) => set({ narration: text, narrationSource: source, isNarrationLoading: false }),
   setNarrationLoading: (val) => set({ isNarrationLoading: val }),
 
   resetUI: () =>
@@ -49,6 +51,7 @@ export const useUIStore = create<UIState>((set) => ({
       showForecast: false,
       showCityIntel: false,
       narration: '',
+      narrationSource: 'template',
       isNarrationLoading: false,
     }),
 }));

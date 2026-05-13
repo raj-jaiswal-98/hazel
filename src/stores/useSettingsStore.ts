@@ -16,25 +16,57 @@ interface SettingsState extends AppSettings {
   resetSettings: () => void;
 }
 
-/** Load settings from localStorage */
+/** Load settings from localStorage with Env fallback */
 function loadSettings(): AppSettings {
+  // 1. Get defaults from Env
+  const openaiKey = import.meta.env.VITE_OPENAI_API_KEY ?? '';
+  const geminiKey = import.meta.env.VITE_GEMINI_API_KEY ?? '';
+  
+  let defaultProvider: NarrationProvider = 'template';
+  if (geminiKey) defaultProvider = 'gemini';
+  else if (openaiKey) defaultProvider = 'openai';
+
+  const baseSettings: AppSettings = {
+    ...DEFAULT_SETTINGS,
+    openaiApiKey: openaiKey,
+    geminiApiKey: geminiKey,
+    unsplashApiKey: import.meta.env.VITE_UNSPLASH_ACCESS_KEY ?? '',
+    openaqApiKey: import.meta.env.VITE_OPENAQ_API_KEY ?? '',
+    narrationProvider: defaultProvider,
+  };
+
+  // 2. Override with LocalStorage if exists, but don't overwrite valid env keys with empty strings
+  let finalSettings = { ...baseSettings };
   try {
     const stored = localStorage.getItem(STORAGE_KEYS.SETTINGS);
     if (stored) {
-      return { ...DEFAULT_SETTINGS, ...JSON.parse(stored) };
+      const parsed = JSON.parse(stored);
+      
+      // Merge carefully
+      finalSettings = {
+        ...baseSettings,
+        ...parsed,
+        // Re-apply Env keys if they are missing in stored or stored is empty
+        openaiApiKey: parsed.openaiApiKey || baseSettings.openaiApiKey,
+        geminiApiKey: parsed.geminiApiKey || baseSettings.geminiApiKey,
+        unsplashApiKey: parsed.unsplashApiKey || baseSettings.unsplashApiKey,
+        openaqApiKey: parsed.openaqApiKey || baseSettings.openaqApiKey,
+        // Only use stored provider if it's not template OR if we don't have an env default
+        narrationProvider: (parsed.narrationProvider !== 'template' ? parsed.narrationProvider : baseSettings.narrationProvider) || 'template',
+      };
     }
   } catch {
-    // Silently fail
+    // Fallback to base
   }
 
-  // Try to load from env
-  return {
-    ...DEFAULT_SETTINGS,
-    openaiApiKey: import.meta.env.VITE_OPENAI_API_KEY ?? '',
-    geminiApiKey: import.meta.env.VITE_GEMINI_API_KEY ?? '',
-    unsplashApiKey: import.meta.env.VITE_UNSPLASH_ACCESS_KEY ?? '',
-    openaqApiKey: import.meta.env.VITE_OPENAQ_API_KEY ?? '',
-  };
+  console.log('[Bloom] Final Settings State:', {
+    provider: finalSettings.narrationProvider,
+    hasOpenAI: !!finalSettings.openaiApiKey,
+    hasGemini: !!finalSettings.geminiApiKey,
+    envGemini: !!geminiKey
+  });
+
+  return finalSettings;
 }
 
 /** Persist settings to localStorage */

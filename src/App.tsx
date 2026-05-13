@@ -1,10 +1,14 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { OmniboxContainer } from './components/Omnibox';
 import { HeroSection } from './components/Hero';
 import { AtmosphericBackground, CanvasLayer } from './components/Background';
+import { BuddyComponent } from './components/Background/BuddyComponent';
 import { WeatherGrid } from './components/Weather';
 import { ForecastTimeline } from './components/Forecast';
 import { CityIntelPanel } from './components/CityIntel';
+import { DiscoverySection } from './components/DiscoverySection';
+import { CityPulseSection } from './components/CityPulseSection';
+import { DraggableWidget } from './components/DraggableWidget';
 import { SettingsPanel } from './components/Settings';
 import { useCityStore } from './stores/useCityStore';
 import { useWeatherStore } from './stores/useWeatherStore';
@@ -15,7 +19,7 @@ import { generateNarration } from './services/narrationService';
 import { weatherCodeToLabel } from './types/weather';
 
 function App() {
-  const { selectedCity, fetchImage, cityImage } = useCityStore();
+  const { selectedCity, fetchImage, fetchWiki, fetchPulse, cityImage } = useCityStore();
   const { current, daily, fetchWeatherData, isLoading: weatherLoading } = useWeatherStore();
   const { openaqApiKey, narrationProvider, openaiApiKey, geminiApiKey, unsplashApiKey } = useSettingsStore();
   const { showHero, showWeather, showForecast, showCityIntel, revealSections, setNarration, setNarrationLoading, resetUI } = useUIStore();
@@ -33,7 +37,10 @@ function App() {
     if (unsplashApiKey) {
       fetchImage(selectedCity.name, unsplashApiKey);
     }
-  }, [selectedCity, fetchWeatherData, fetchImage, openaqApiKey, unsplashApiKey, resetUI]);
+
+    fetchWiki(selectedCity.name);
+    fetchPulse(selectedCity.name);
+  }, [selectedCity, fetchWeatherData, fetchImage, fetchWiki, fetchPulse, openaqApiKey, unsplashApiKey, resetUI]);
 
   // Reveal sections after weather loads
   useEffect(() => {
@@ -42,13 +49,21 @@ function App() {
     }
   }, [current, selectedCity, revealSections]);
 
+  const lastNarrationRef = useRef<string | null>(null);
+
   // Generate narration when weather data arrives
   useEffect(() => {
     if (!current || !selectedCity) return;
 
-    setNarrationLoading(true);
+    // Deduplication key
+    const stateKey = `${selectedCity.id}-${current.weatherCode}-${timeOfDay}`;
+    if (lastNarrationRef.current === stateKey) return;
 
     const apiKey = narrationProvider === 'openai' ? openaiApiKey : geminiApiKey;
+    if (!apiKey && narrationProvider !== 'template') return;
+
+    lastNarrationRef.current = stateKey;
+    setNarrationLoading(true);
 
     generateNarration(
       {
@@ -62,8 +77,13 @@ function App() {
       },
       narrationProvider,
       apiKey
-    ).then((text) => setNarration(text));
-  }, [current, selectedCity, narrationProvider, openaiApiKey, geminiApiKey, timeOfDay, setNarration, setNarrationLoading]);
+    ).then((result) => {
+      // Only set if we actually got text back (lock might have blocked concurrent)
+      if (result.text) {
+        setNarration(result.text, result.source);
+      }
+    });
+  }, [current, selectedCity, narrationProvider, openaiApiKey, geminiApiKey, timeOfDay, setNarration, setNarrationLoading, lastNarrationRef]);
 
   return (
     <div className="relative min-h-screen overflow-hidden">
@@ -73,11 +93,13 @@ function App() {
         timeOfDay={timeOfDay}
         cloudCover={current?.cloudCover}
         imageUrl={cityImage?.url}
+        cityName={selectedCity?.name}
       />
       <CanvasLayer />
+      <BuddyComponent />
 
       {/* Main content */}
-      <div className="relative z-10">
+      <div className="relative z-10 flex flex-col items-center w-full">
         {/* Omnibox — always visible */}
         <OmniboxContainer />
 
@@ -88,23 +110,37 @@ function App() {
 
         {/* Weather Layer */}
         {showWeather && current && !weatherLoading && (
-          <div className="max-w-6xl mx-auto px-6 mt-8">
+          <DraggableWidget id="weather-bar" className="w-full max-w-6xl px-6 mt-8">
             <WeatherGrid />
-          </div>
+          </DraggableWidget>
         )}
 
-        {/* Forecast Timeline */}
+        {/* Discovery Section (Wiki) */}
+        {showForecast && (
+          <DraggableWidget id="discovery-wiki" className="w-full max-w-6xl px-6 mt-12">
+            <DiscoverySection />
+          </DraggableWidget>
+        )}
+
+        {/* City Pulse Section (History) */}
+        {showCityIntel && (
+          <DraggableWidget id="city-pulse" className="w-full max-w-6xl px-6 mt-12">
+            <CityPulseSection />
+          </DraggableWidget>
+        )}
+
+        {/* Forecast Timeline (Secondary Info) */}
         {showForecast && daily.length > 0 && (
-          <div className="max-w-6xl mx-auto px-6 mt-8">
+          <DraggableWidget id="forecast-timeline" className="w-full max-w-6xl px-6 mt-12">
             <ForecastTimeline />
-          </div>
+          </DraggableWidget>
         )}
 
-        {/* City Intelligence */}
+        {/* City Intelligence (Deep Data) */}
         {showCityIntel && selectedCity && (
-          <div className="max-w-6xl mx-auto px-6 mt-8 pb-16">
+          <DraggableWidget id="city-intelligence" className="w-full max-w-6xl px-6 mt-12 pb-16">
             <CityIntelPanel />
-          </div>
+          </DraggableWidget>
         )}
       </div>
 

@@ -18,24 +18,46 @@ export async function generateGeminiNarration(
   input: NarrationInput,
   apiKey: string
 ): Promise<string> {
-  const url = `${API.GEMINI}?key=${apiKey}`;
+  const maxRetries = 2;
+  let attempt = 0;
 
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      contents: [{ parts: [{ text: buildPrompt(input) }] }],
-      generationConfig: {
-        maxOutputTokens: 60,
-        temperature: 0.8,
-      },
-    }),
-  });
+  while (attempt <= maxRetries) {
+    const response = await fetch(`${API.GEMINI}?key=${apiKey}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: buildPrompt(input) }] }],
+        generationConfig: {
+          maxOutputTokens: 60,
+          temperature: 0.8,
+        },
+      }),
+    });
 
-  if (!response.ok) {
-    throw new Error(`Gemini API error: ${response.status}`);
+    if (response.ok) {
+      const data = await response.json();
+      const text = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() ?? '';
+      console.log('[Gemini Provider] Success:', { text });
+      return text;
+    }
+
+    if (response.status === 429 && attempt < maxRetries) {
+      attempt++;
+      const waitTime = 2000;
+      console.warn(`[Gemini Provider] Rate limited (429). Retrying in ${waitTime}ms... (Attempt ${attempt}/${maxRetries})`);
+      await new Promise(resolve => setTimeout(resolve, waitTime));
+      continue;
+    }
+
+    const errorData = await response.json().catch(() => ({}));
+    const errorMessage = errorData.error?.message || 'Unknown Gemini Error';
+    console.error('[Gemini Provider] API Error:', {
+      status: response.status,
+      message: errorMessage,
+      details: errorData
+    });
+    throw new Error(`Gemini API error: ${response.status} - ${errorMessage}`);
   }
 
-  const data = await response.json();
-  return data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() ?? '';
+  return '';
 }

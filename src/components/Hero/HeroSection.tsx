@@ -90,7 +90,7 @@ export function HeroSection() {
       {/* Narration */}
       {narration && (
         <motion.p
-          className="mt-8 text-narration max-w-xl"
+          className="mt-8 text-narration max-w-xl text-center"
           style={{ color: textColor, opacity: 0.75 }}
           initial={{ opacity: 0 }}
           animate={{ opacity: 0.75 }}

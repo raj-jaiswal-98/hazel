@@ -1,5 +1,20 @@
 import type { WeatherCondition, TimeOfDay } from '../types/weather';
 
+/**
+ * Generates a unique 'signature color' for a city based on its name.
+ * This ensures every city has a distinct 'mood' even in the same weather.
+ */
+export function getCitySignatureColor(name: string): string {
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) {
+    hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const h = Math.abs(hash % 360);
+  const s = 30 + (Math.abs(hash % 30)); // 30-60% saturation
+  const l = 50 + (Math.abs(hash % 20)); // 50-70% lightness
+  return `hsl(${h}, ${s}%, ${l}%)`;
+}
+
 /** Atmospheric palette for backgrounds */
 export interface AtmosphericPalette {
   gradient: [string, string, string];

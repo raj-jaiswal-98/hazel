@@ -34,9 +34,18 @@ export async function generateOpenAINarration(
   });
 
   if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    console.error('[OpenAI Provider] API Error:', {
+      status: response.status,
+      error: errorData
+    });
     throw new Error(`OpenAI API error: ${response.status}`);
   }
 
   const data = await response.json();
-  return data.choices?.[0]?.message?.content?.trim() ?? '';
+  const text = data.choices?.[0]?.message?.content?.trim() ?? '';
+  
+  console.log('[OpenAI Provider] Success:', { text });
+  
+  return text;
 }
