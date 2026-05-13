@@ -37,6 +37,15 @@ function ChangeView({ center, zoom }: { center: [number, number]; zoom: number }
  * Cinematic City Map component
  */
 export function CityMap({ lat, lon, zoom = 13, className = '', landmarks = [] }: CityMapProps) {
+  // Guard against invalid coordinates
+  if (lat === undefined || lon === undefined || isNaN(lat) || isNaN(lon)) {
+    return (
+      <div className={`relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 animate-pulse flex items-center justify-center text-bloom-text-muted italic ${className}`} style={{ height: '300px' }}>
+        Initialising local coordinates...
+      </div>
+    );
+  }
+
   const center: [number, number] = [lat, lon];
 
   return (
@@ -62,13 +71,15 @@ export function CityMap({ lat, lon, zoom = 13, className = '', landmarks = [] }:
           </Popup>
         </Marker>
 
-        {landmarks.map((poi, i) => (
-          <Marker key={`${poi.name}-${i}`} position={[poi.lat, poi.lon]}>
-            <Popup>
-              <div className="text-xs">{poi.name}</div>
-            </Popup>
-          </Marker>
-        ))}
+        {landmarks
+          .filter(poi => poi.lat !== undefined && poi.lon !== undefined && !isNaN(poi.lat) && !isNaN(poi.lon))
+          .map((poi, i) => (
+            <Marker key={`${poi.name}-${i}`} position={[poi.lat, poi.lon]}>
+              <Popup>
+                <div className="text-xs">{poi.name}</div>
+              </Popup>
+            </Marker>
+          ))}
       </MapContainer>
 
       {/* Decorative Overlay */}
